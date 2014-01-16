@@ -11,11 +11,11 @@ import random, sys, csv
 '''
 config vars for testing
 '''
-num_sems = 40
-num_students = 500
-num_runs = 1000
-num_ranks = 5 # number of seminars ranked by each student
-sem_size = 15
+NUM_SEMS = 40
+NUM_STUDENTS = 500
+NUM_RUNS = 1000
+NUM_RANKS = 5 # number of seminars ranked by each student
+SEM_SIZE = 15
 
 '''
 some data models
@@ -42,7 +42,7 @@ class Student:
 	def set_assigned_rank(self, assigned_rank):
 		self.assigned_rank = assigned_rank
 
-# each seminar has 
+# 
 class Seminar:
 	def __init__(self, title, cap=None):
 		self.title = title
@@ -108,7 +108,7 @@ def sort(students, seminars):
 			while seminar.is_full():
 				rank += 1
 				# short end of the stick
-				if rank > num_ranks:
+				if rank > NUM_RANKS:
 					seminar = seminars[random.randint(len(seminars))]
 					rank = -1
 				else:
@@ -140,7 +140,7 @@ create sample student body
 '''
 def sample_students(seminars):
 	students = []
-	for i in range(num_students):
+	for i in range(NUM_STUDENTS):
 		 # shuffle seminars to simulate ranking
 		random.shuffle(seminars)
 		# construct student 'i i' with random seminar ranks
@@ -153,7 +153,7 @@ def sample_students(seminars):
 test the algo with some sample data
 '''
 # create seminars
-seminars = [Seminar(str(i)) for i in range(num_sems)] 
+seminars = [Seminar(str(i)) for i in range(NUM_SEMS)] 
 # create clean copy of seminar
 sems_cp = seminars[:]
 students = sample_students(sems_cp)
