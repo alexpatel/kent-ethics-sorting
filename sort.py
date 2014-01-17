@@ -19,7 +19,6 @@ NUM_RUNS = 1000
 NUM_RANKS = 5 # number of seminars ranked by each student
 SEM_SIZE = 15
 
-
 '''
 sort students into seminars	
 returns optimal run (i.e. sorted seminars and students)
@@ -53,19 +52,19 @@ def sort(students, seminars):
 	return best_run(runs)
 
 '''
-given a set of test traversals (runs), figure out the best way of traversing student graph
+given a set of possible orderings of the set of students, figure out the ordering that optimizes age distribution
 '''
 def best_run(runs):
 	best_run = None
-	best_score = sys.maxint # arbitrary - just a big number
+	best_age_distro = sys.maxint # arbitrary - just a big number
 	for run in runs:
-		if run.get_score() < best_score:
-			best_score = run.get_score()
+		if run.get_age_distro() < best_age_distro:
+			best_age_distro = run.get_age_distro()
 			best_run = run
 	return best_run
 
 '''
-create sample student body
+create sample student body for tests
 '''
 def sample_students(seminars):
 	students = []
@@ -79,11 +78,15 @@ def sample_students(seminars):
 	return students
 
 ''' 
-test the algo with some sample data
+test sorting with some sample data
 '''
-# create seminars
-seminars = [Seminar(str(i)) for i in range(NUM_SEMS)] 
-# create clean copy of seminar
-sems_cp = seminars[:]
-students = sample_students(sems_cp)
-sort(students, sems_cp)
+def test():
+	# create seminars
+	seminars = [Seminar(str(i)) for i in range(NUM_SEMS)] 
+	# create clean copy of seminar
+	sems_cp = seminars[:]
+	students = sample_students(sems_cp)
+	sort(students, sems_cp)
+
+if __name__ == '__main__':
+	test()
