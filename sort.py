@@ -7,6 +7,8 @@ January 13, 2014
 '''
 
 import random, sys, csv
+from models import Student, Seminar, Run
+from read import read_students, read_seminars
 
 '''
 config vars for testing
@@ -17,87 +19,15 @@ NUM_RUNS = 1000
 NUM_RANKS = 5 # number of seminars ranked by each student
 SEM_SIZE = 15
 
-'''
-some data models
-'''
-# each student has name, grade, advisor, and a set of ranked seminars
-class Student:
-	def __init__(self, first, last, grade, advisor, choices):
-		self.first = first
-		self.last = last
-		self.grade = grade
-		self.advisor = advisor
-		self.choices = choices
-
-	def __str__(self):
-		return "{0}, {1}, Grade: {2}".format(self.first, self.last, self.grade)
-
-	def choices(self):
-		return self.choices
-
-	def assign(self, seminar):
-		self.seminar = seminar
-		seminar.add_student(self)
-
-	def set_assigned_rank(self, assigned_rank):
-		self.assigned_rank = assigned_rank
-
-# 
-class Seminar:
-	def __init__(self, title, cap=None):
-		self.title = title
-		# size capacity of seminar
-		self.cap = cap
-		self.students = []
-
-	def __str__(self):
-		return self.title
-
-	def students(self):
-		return self.students
-
-	def add_student(self, student):
-		self.students[len(self.students):] = student
-
-	def is_full(self):
-		return len(self.students) == self.cap if self.cap else len(self.students) == sem_size
-
-	def get_age_distro(self):
-		age_sum = 0
-		for student in self.students:
-			age_sum += student.grade - 8 # so that ages are 1, 2, 3, 
-		return abs(float(age_sum - len(self.students)) /len(self.students))
-
-# object to store stats for any given sample Run
-class Run():
-	def __init__(self, seed, seminars, students):
-		self.seminars = seminars
-		self.students = students
-		self.seed = seed
-
-	# average rank assigned
-	def get_choice_distro(self):
-		rank_sum = 0
-		for student in self.students:
-			rank_sum += student.assigned_rank # should replace with lambda
-		return float(rank_sum) / len(self.students)
-
-	# average age distribution
-	# returns: % diff. between run's age distribution and optimal age distribution (equal)
-	def get_age_distro(self):
-		distro_sum = 0
-		for seminar in self.seminars:
-			distro_sum += seminar.get_age_distro()
-		return float(distro_sum) / len(self.seminars)
 
 '''
 sort students into seminars	
-return: run (run with optimal age and choice distribution)
+returns optimal run (i.e. sorted seminars and students)
 '''
 def sort(students, seminars):
 	runs = []
-	for i in range(num_runs):
-		# create unique rand seed
+	for i in range(NUM_RUNS):
+		# create unique rand seed and shuffle student assignment order
 		random.seed (i) 
 		random.shuffle(students)
 		# assign students to seminars
@@ -105,12 +35,12 @@ def sort(students, seminars):
 			rank = 1
 			seminar = student.choices[rank]
 			# assign student to highest ranked seminar with an open seat
-			while seminar.is_full():
+			while seminar.is_full(SEM_SIZE):
 				rank += 1
-				# short end of the stick
+				# short end of the stick - assign to random seminar
 				if rank > NUM_RANKS:
-					seminar = seminars[random.randint(len(seminars))]
 					rank = -1
+					seminar = seminars[random.randint(len(seminars))]
 				else:
 					seminar = student.choices[rank]
 			# assign student to seminar
@@ -120,19 +50,18 @@ def sort(students, seminars):
 		# add run to set of runs
 		runs[len(runs):] = run
 
-	# figure out optimal run
+	return best_run(runs)
+
+'''
+given a set of test traversals (runs), figure out the best way of traversing student graph
+'''
+def best_run(runs):
 	best_run = None
-	best_choice_distro = sys.maxint
-	best_age_distro = sys.maxint
-
+	best_score = sys.maxint # arbitrary - just a big number
 	for run in runs:
-		choice_distro = run.get_choice_distro() 
-		age_distro = run.get_age_distro()
-		if  age_distro < best_age_distro and choice_distro < best_choice_distro:
-			best_age_distro = age_distro
-			best_choice_distro = choice_distro
+		if run.get_score() < best_score:
+			best_score = run.get_score()
 			best_run = run
-
 	return best_run
 
 '''
@@ -158,22 +87,3 @@ seminars = [Seminar(str(i)) for i in range(NUM_SEMS)]
 sems_cp = seminars[:]
 students = sample_students(sems_cp)
 sort(students, sems_cp)
-
-'''
-build students from csv file specified by command line argument
-'''
-def read_students():
-	students = []
-	f = open(sys.argv[1], 'rb') 
-	try:
-		read = csv.reader(f)
-		for row in read:
-			name = row[0].split().replace(',', '')
-			grade = row[1]
-			advisor = row[2]
-			choices = row[3:]
-			student = Student(name[1], name[0], grade, advisor, choices)
-			students.append(student)
-	finally:
-		f.close()
-		return students
